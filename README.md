@@ -50,6 +50,7 @@ Your most import configuration files (e.g. vim, inputrc) may not be bash scripts
 
 If you use tmux frequently, you can make sshrc work there as well. The following seems complicated, but hopefully it should just work.
 
+    $ echo 'set -g default-terminal "screen-256color"' > ~/.sshrc.d/.tmux.conf
     $ cat << 'EOF' > ~/.sshrc
     alias foo='echo I work with tmux, too'
     
@@ -61,7 +62,7 @@ If you use tmux frequently, you can make sshrc work there as well. The following
         fi
         rm -rf $TMUXDIR/.sshrc.d
         cp -r $SSHHOME/.sshrc $SSHHOME/bashsshrc $SSHHOME/sshrc $SSHHOME/.sshrc.d $TMUXDIR
-        SSHHOME=$TMUXDIR SHELL=$TMUXDIR/bashsshrc /usr/bin/tmux -S $TMUXDIR/tmuxserver $@
+        SSHHOME=$TMUXDIR SHELL=$TMUXDIR/bashsshrc /usr/bin/tmux -f $SSHHOME/.sshrc.d/.tmux.conf -S $TMUXDIR/tmuxserver $@
     }
     export SHELL=`which bash`
     EOF
@@ -69,8 +70,10 @@ If you use tmux frequently, you can make sshrc work there as well. The following
     $ tmuxrc
     $ foo
     I work with tmux, too
+    $ echo "This is from my custom tmux config - $TERM"
+    This is from my custom tmux config - screen-256color
 
-The -S option will start a separate tmux server. You can still safely access the vanilla tmux server with `tmux`. Tmux servers can persist for longer than your ssh session, so the above `tmuxrc` function copies your configs to the more permenant /tmp/russelltmuxserver, which won't be deleted when you close your ssh session. Starting tmux with the SHELL environment variable set to bashsshrc will take care of loading your configs with each new terminal. Setting SHELL back to /bin/bash when you're done is important to prevent quirks due to tmux sessions having a non-default SHELL variable.
+The -f option will pull in your custom tmux config file. The -S option will start a separate tmux server. You can still safely access the vanilla tmux server with `tmux`. Tmux servers can persist for longer than your ssh session, so the above `tmuxrc` function copies your configs to the more permenant /tmp/russelltmuxserver, which won't be deleted when you close your ssh session. Starting tmux with the SHELL environment variable set to bashsshrc will take care of loading your configs with each new terminal. Setting SHELL back to /bin/bash when you're done is important to prevent quirks due to tmux sessions having a non-default SHELL variable.
 
 ### Specializing .sshrc to individual servers
 
